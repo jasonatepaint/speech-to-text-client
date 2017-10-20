@@ -955,15 +955,14 @@ var AudioControl = function () {
   /**
    * Clears the previous buffer and starts buffering audio.
    * @param {?onSilenceCallback} onSilence - Called when silence is detected.
-   * @param {?visualizerCallback} visualizer - Can be used to visualize the captured buffer.
    */
 
 
   _createClass(AudioControl, [{
     key: 'startRecording',
-    value: function startRecording(onSilence) {
+    value: function startRecording(onSilence, onChunkedAudio) {
       this.recorder = this.audioRecorder.createRecorder();
-      this.recorder.record(onSilence);
+      this.recorder.record(onSilence, onChunkedAudio);
     }
   }, {
     key: 'stopRecording',
@@ -1086,8 +1085,8 @@ var Recorder = function () {
 
     var self = this;
     worker.onmessage = function (message) {
-      var blob = message.data;
-      self.currCallback(blob);
+      var buffer = message.data;
+      if (buffer) self.onChunkedAudio(buffer);
     };
 
     worker.postMessage({
@@ -1134,8 +1133,9 @@ var Recorder = function () {
 
   _createClass(Recorder, [{
     key: 'record',
-    value: function record(onSilence) {
+    value: function record(onChunkedAudio, onSilence) {
       this.silenceCallback = onSilence;
+      this.onChunkedAudio = onChunkedAudio;
       this.start = Date.now();
       this.recording = true;
     }
@@ -1158,20 +1158,6 @@ var Recorder = function () {
      */
     value: function clear() {
       worker.postMessage({ command: 'clear' });
-    }
-  }, {
-    key: 'exportWAV',
-
-
-    /**
-     * Sets the export callback and posts an "export" message to the worker.
-     * @param {onExportComplete} callback - Called when the export is complete.
-     */
-    value: function exportWAV(callback) {
-      this.currCallback = callback;
-      worker.postMessage({
-        command: 'export'
-      });
     }
   }, {
     key: 'startSilenceDetection',
@@ -1460,14 +1446,12 @@ module.exports.BufferBuilder = BufferBuilder;
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(console) {
 
-console.log('webpack is working!');
+
 __webpack_require__(4);
 __webpack_require__(5);
 __webpack_require__(6);
 __webpack_require__(24);
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
 /* 9 */
@@ -5071,7 +5055,8 @@ var SpeechToText = function SpeechToText(serverUrl, canvas, emitter) {
   var audioControl = new AudioControl(audioRecorder);
   var client = void 0,
       bStream = void 0,
-      conversation = void 0;
+      conversation = void 0,
+      timer = void 0;
 
   function startListening() {
     if (conversation) conversation.advanceConversation();
@@ -5086,22 +5071,30 @@ var SpeechToText = function SpeechToText(serverUrl, canvas, emitter) {
       READY: 'Ready',
       LISTENING: 'Listening',
       SENDING: 'Sending',
-      TRANSLATED: 'Transcribed'
+      TRANSCRIBED: 'Transcribed'
     });
 
     this.onSilence = function () {
-      audioControl.stopRecording();
-      currentState.state.renderer.clearCanvas();
-      currentState.advanceConversation();
+      console.log("onSilence");
+      if (timer) return;
+
+      //Timeout in case we don't get a quick response from the server
+      timer = setTimeout(function () {
+        console.log("timed out");
+        currentState.state.setResponse(null);
+      }, 5000);
+    };
+
+    this.onChunkedAudio = function (buffer) {
+      if (!buffer) return;
+      if (bStream && bStream.writable) bStream.write(buffer);
     };
 
     this.transition = function (conversation) {
       currentState = conversation;
       var state = currentState.state;
 
-      if (state.status === state.statusTypes.SENDING) {
-        currentState.advanceConversation();
-      } else if (state.status === state.statusTypes.TRANSLATED) {
+      if (state.status === state.statusTypes.TRANSCRIBED) {
         currentState.advanceConversation();
       }
     };
@@ -5120,7 +5113,42 @@ var SpeechToText = function SpeechToText(serverUrl, canvas, emitter) {
 
     this.advanceConversation = function () {
       renderer.prepCanvas();
-      audioControl.startRecording(state.onSilence);
+
+      var sampleRate = 16000;
+      var isClientOpen = false;
+
+      timer = null;
+      client = new BinaryClient(serverUrl);
+      client.on('open', function () {
+        console.log("client opened");
+
+        bStream = client.createStream({ sampleRate: sampleRate });
+        bStream.on('data', function (data) {
+          setResponse(data.message);
+        });
+      });
+
+      client.on('error', function (e) {
+        clearTimeout(timer);
+        setResponse(null);
+      });
+
+      function setResponse(message) {
+        clearTimeout(timer);
+        state.result = message;
+
+        isClientOpen = false;
+        if (isClientOpen) {
+          client.close();
+        }
+
+        audioControl.stopRecording();
+        state.renderer.clearCanvas();
+        state.transition(new Transcribed(state));
+      }
+      state.setResponse = setResponse;
+
+      audioControl.startRecording(state.onChunkedAudio, state.onSilence);
       state.transition(new Listening(state));
     };
   }
@@ -5130,10 +5158,11 @@ var SpeechToText = function SpeechToText(serverUrl, canvas, emitter) {
     state.status = state.statusTypes.LISTENING;
     emitter.emit("state", state.statusTypes.LISTENING);
     this.advanceConversation = function () {
-      audioControl.exportWAV(function (blob) {
-        state.audioInput = blob;
-        state.transition(new Sending(state));
-      });
+      // audioControl.exportWAV(function(blob) {
+      //   state.audioInput = blob;
+      //   state.transition(new Sending(state));
+      // });
+      state.transition(new Transcribed(state));
     };
   }
 
@@ -5141,82 +5170,13 @@ var SpeechToText = function SpeechToText(serverUrl, canvas, emitter) {
     this.state = state;
     state.status = state.statusTypes.SENDING;
     emitter.emit("state", state.statusTypes.SENDING);
-    this.advanceConversation = function () {
-
-      var sampleRate = 16000;
-      var timer = null;
-      var isClientOpen = false;
-      var lastResultTimestamp = void 0,
-          lastMessage = void 0;
-
-      //Timeout in case we don't get a quick response from the server
-      timer = setTimeout(function () {
-        setResponse(null);
-      }, 10000);
-
-      client = new BinaryClient(serverUrl, { chunkSize: 32000 });
-      client.on('open', function () {
-        console.log("client opened");
-        bStream = client.createStream({ sampleRate: sampleRate });
-
-        bStream.on('data', function (data) {
-          //skip identical statusTypes
-          if (lastMessage === data.message) {
-            console.log("skipping");
-            return;
-          }
-          captureMessage(data.message);
-        });
-
-        if (bStream && bStream.writable) bStream.write(state.audioInput);
-      });
-
-      client.on('error', function (e) {
-        clearTimeout(timer);
-        setResponse(null);
-      });
-
-      function setResponse(message) {
-        console.log(message);
-        state.result = message;
-        state.transition(new Transcribed(state));
-        isClientOpen = false;
-        if (isClientOpen) {
-          client.close();
-        }
-      }
-
-      function captureMessage(message) {
-        console.log("msg: ", message);
-        lastResultTimestamp = Date.now();
-        if (message) {
-          lastMessage = message;
-        }
-        checkForDone();
-      }
-
-      function checkForDone() {
-        if (!lastResultTimestamp) return;
-        var msDiff = Math.abs(Date.now() - lastResultTimestamp);
-        if (msDiff >= 500) {
-          state.result = lastMessage;
-          state.transition(new Transcribed(state));
-          lastResultTimestamp = null;
-          clearTimeout(timer);
-          client.close();
-        } else {
-          setTimeout(function () {
-            checkForDone();
-          }, 150);
-        }
-      }
-    };
+    this.advanceConversation = function () {};
   }
 
   function Transcribed(state) {
     this.state = state;
-    state.status = state.statusTypes.TRANSLATED;
-    emitter.emit("state", state.statusTypes.TRANSLATED);
+    state.status = state.statusTypes.TRANSCRIBED;
+    emitter.emit("state", state.statusTypes.TRANSCRIBED);
     emitter.emit("result", state.result);
     this.advanceConversation = function () {
       client.close();

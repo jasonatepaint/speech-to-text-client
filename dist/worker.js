@@ -1,8 +1,7 @@
 /*jshint strict:false */
 /* globals postMessage  */
-var recLength = 0,
+var
   SIXTEEN_kHz = 16000,
-  recBuffer = [],
   sampleRate;
 
 var onmessage = function(e) {
@@ -13,12 +12,6 @@ var onmessage = function(e) {
     case 'record':
       record(e.data.buffer);
       break;
-    case 'export':
-      exportBuffer();
-      break;
-    case 'clear':
-      clear();
-      break;
   }
 };
 
@@ -27,21 +20,22 @@ function init(config) {
 }
 
 function record(inputBuffer) {
-  recBuffer.push(inputBuffer[0]);
-  recLength += inputBuffer[0].length;
-}
+  var recBuffer = [ inputBuffer[0] ];
+  var recLength = inputBuffer[0].length;
 
-function exportBuffer() {
   var mergedBuffers = mergeBuffers(recBuffer, recLength);
   var downsampledBuffer = downsampleBuffer(mergedBuffers, SIXTEEN_kHz);
-  var encodedWav = encodeWAV(downsampledBuffer);
-  var audioBlob = new Blob([encodedWav], { type: 'application/octet-stream' });
-  postMessage(audioBlob);
+  postMessage(convertFloat32ToInt16(downsampledBuffer));
+
 }
 
-function clear() {
-  recLength = 0;
-  recBuffer = [];
+function convertFloat32ToInt16(buffer) {
+  var l = buffer.length;
+  var buf = new Int16Array(l);
+  while (l--) {
+    buf[l] = Math.min(1, buffer[l]) * 0x7FFF;
+  }
+  return buf.buffer;
 }
 
 function downsampleBuffer(buffer) {

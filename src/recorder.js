@@ -14,8 +14,9 @@ class Recorder {
 
     let self = this;
     worker.onmessage = function(message) {
-      let blob = message.data;
-      self.currCallback(blob);
+      let buffer = message.data;
+      if (buffer)
+        self.onChunkedAudio(buffer);
     };
 
     worker.postMessage({
@@ -60,8 +61,9 @@ class Recorder {
    * Sets the silence and viz callbacks, resets the silence start time, and sets recording to true.
    * @param {?onSilenceCallback} onSilence - Called when silence is detected.
    */
-  record(onSilence) {
+  record(onChunkedAudio, onSilence) {
     this.silenceCallback = onSilence;
+    this.onChunkedAudio = onChunkedAudio;
     this.start = Date.now();
     this.recording = true;
   };
@@ -80,16 +82,6 @@ class Recorder {
     worker.postMessage({ command: 'clear' });
   };
 
-  /**
-   * Sets the export callback and posts an "export" message to the worker.
-   * @param {onExportComplete} callback - Called when the export is complete.
-   */
-  exportWAV(callback) {
-    this.currCallback = callback;
-    worker.postMessage({
-      command: 'export'
-    });
-  };
 
   /**
    * Checks the time domain data to see if the amplitude of the sound waveform is more than

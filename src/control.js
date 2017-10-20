@@ -25,11 +25,10 @@ class AudioControl {
   /**
    * Clears the previous buffer and starts buffering audio.
    * @param {?onSilenceCallback} onSilence - Called when silence is detected.
-   * @param {?visualizerCallback} visualizer - Can be used to visualize the captured buffer.
    */
-  startRecording(onSilence) {
+  startRecording(onSilence, onChunkedAudio) {
     this.recorder = this.audioRecorder.createRecorder();
-    this.recorder.record(onSilence);
+    this.recorder.record(onSilence, onChunkedAudio);
   };
 
   /**
