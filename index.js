@@ -1,1 +1,1 @@
-require('./dist/bundle');
+require('./dist/index');
