@@ -19,8 +19,8 @@
     "worker-loader": "^1.0.0"
   },
   "scripts": {
-    "postinstall": "build",
-    "build": " babel ./src --presets babel-preset-es2015 --out-dir ./dist",
+    "postinstall": "npm run build",
+    "build": "babel ./src --presets babel-preset-es2015 --out-dir ./dist",
     "dev": "serve ./dist"
   }
 }
