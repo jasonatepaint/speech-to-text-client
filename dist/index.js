@@ -1,3 +1,3 @@
 'use strict';
 
-require('./client');
+module.exports = require('./client');
