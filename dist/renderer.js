@@ -46,7 +46,7 @@ var Renderer = function () {
     key: 'clearCanvas',
     value: function clearCanvas() {
       if (!this.canvas) return;
-      this.canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+      this.canvasCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.listening = false;
     }
   }, {
