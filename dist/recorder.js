@@ -11,7 +11,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 /* globals AudioContext  */
 /* globals ttsAudio  */
 
-var worker = new Worker('./worker.js');
+var blob = new Blob(require('./worker.js'));
+var blobUrl = window.URL.createObjectURL(blob);
+var worker = new Worker(blobUrl);
+
 var getUserMedia = require('getusermedia');
 
 var Recorder = function () {

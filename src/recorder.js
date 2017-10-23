@@ -1,7 +1,10 @@
 /* globals AudioContext  */
 /* globals ttsAudio  */
 
-const worker = new Worker('./worker.js');
+var blob = new Blob(require('./worker.js'));
+var blobUrl = window.URL.createObjectURL(blob);
+const worker = new Worker(blobUrl);
+
 const getUserMedia = require('getusermedia');
 
 class Recorder {
