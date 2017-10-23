@@ -39,7 +39,6 @@ const SpeechToText = (serverUrl, canvas, emitter) => {
     this.statusTypes = Object.freeze({
       READY: 'Ready',
       LISTENING: 'Listening',
-      SENDING: 'Sending',
       TRANSCRIBED: 'Transcribed'
     });
 
@@ -133,16 +132,6 @@ const SpeechToText = (serverUrl, canvas, emitter) => {
       //   state.transition(new Sending(state));
       // });
       state.transition(new Transcribed(state));
-    }
-  }
-
-  function Sending(state) {
-    this.state = state;
-    state.status = state.statusTypes.SENDING;
-    emitter.emit("state", state.statusTypes.SENDING);
-    this.advanceConversation = function() {
-
-
     }
   }
 
