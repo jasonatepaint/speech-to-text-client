@@ -162,4 +162,4 @@ const SpeechToText = (serverUrl, canvas, emitter) => {
 };
 
 module.exports = Client;
-(function(ttsAudio) { ttsAudio.Client = Client; })(ttsAudio);
+//(function(ttsAudio) { ttsAudio.Client = Client; })(ttsAudio);
