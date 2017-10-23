@@ -1,1 +1,1 @@
-module.exports.Client = require('./client');
+export Client from './client';

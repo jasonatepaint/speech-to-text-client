@@ -1,15 +1,15 @@
-'use strict';
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('babel-runtime/core-js/object/freeze'), require('babel-runtime/helpers/classCallCheck'), require('babel-runtime/helpers/createClass'), require('babel-runtime/core-js/promise'), require('binaryjs-client'), require('events')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'babel-runtime/core-js/object/freeze', 'babel-runtime/helpers/classCallCheck', 'babel-runtime/helpers/createClass', 'babel-runtime/core-js/promise', 'binaryjs-client', 'events'], factory) :
+	(factory((global['speech-to-text-client'] = {}),global._Object$freeze,global._classCallCheck,global._createClass,global._Promise,global.BinaryClient,global.EventEmitter));
+}(this, (function (exports,_Object$freeze,_classCallCheck,_createClass,_Promise,BinaryClient,EventEmitter) { 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var _Object$freeze = _interopDefault(require('babel-runtime/core-js/object/freeze'));
-var _classCallCheck = _interopDefault(require('babel-runtime/helpers/classCallCheck'));
-var _createClass = _interopDefault(require('babel-runtime/helpers/createClass'));
-var _Promise = _interopDefault(require('babel-runtime/core-js/promise'));
-var BinaryClient = _interopDefault(require('binaryjs-client'));
-var EventEmitter = _interopDefault(require('events'));
+_Object$freeze = _Object$freeze && _Object$freeze.hasOwnProperty('default') ? _Object$freeze['default'] : _Object$freeze;
+_classCallCheck = _classCallCheck && _classCallCheck.hasOwnProperty('default') ? _classCallCheck['default'] : _classCallCheck;
+_createClass = _createClass && _createClass.hasOwnProperty('default') ? _createClass['default'] : _createClass;
+_Promise = _Promise && _Promise.hasOwnProperty('default') ? _Promise['default'] : _Promise;
+BinaryClient = BinaryClient && BinaryClient.hasOwnProperty('default') ? BinaryClient['default'] : BinaryClient;
+EventEmitter = EventEmitter && EventEmitter.hasOwnProperty('default') ? EventEmitter['default'] : EventEmitter;
 
 /* globals AudioContext  */
 /* globals ttsAudio  */
@@ -564,4 +564,8 @@ var SpeechToText = function SpeechToText(serverUrl, canvas, emitter) {
 //(function(ttsAudio) { ttsAudio.Client = Client; })(ttsAudio);
 
 exports.Client = Client;
-//# sourceMappingURL=index.js.map
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+})));
+//# sourceMappingURL=index.umd.js.map
