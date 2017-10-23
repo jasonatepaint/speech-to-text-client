@@ -93,4 +93,4 @@ class Renderer {
   };
 }
 
-module.exports = Renderer;
+export default Renderer;

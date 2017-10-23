@@ -72,4 +72,4 @@ class AudioControl {
   };
 }
 
-module.exports = AudioControl;
+export default AudioControl;

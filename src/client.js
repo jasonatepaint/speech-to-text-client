@@ -1,8 +1,8 @@
-const AudioRecorder = require('./recorder');
-const Renderer = require('./renderer');
-const AudioControl = require('./control');
-const BinaryClient = require('binaryjs-client').BinaryClient;
-const EventEmitter = require("events");
+import AudioRecorder from './recorder';
+import Renderer from './renderer';
+import AudioControl from './control';
+import BinaryClient from 'binaryjs-client';
+import EventEmitter from "events";
 
 class Client {
   constructor(serverUrl, canvas) {
@@ -87,7 +87,7 @@ const SpeechToText = (serverUrl, canvas, emitter) => {
       let isClientOpen = false;
 
       timer = null;
-      client = new BinaryClient(serverUrl);
+      client = new BinaryClient.BinaryClient(serverUrl);
       client.on('open', function () {
         console.log("client opened");
 
@@ -161,5 +161,5 @@ const SpeechToText = (serverUrl, canvas, emitter) => {
   }
 };
 
-module.exports = Client;
+export default Client;
 //(function(ttsAudio) { ttsAudio.Client = Client; })(ttsAudio);

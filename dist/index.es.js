@@ -1,18 +1,9 @@
-'use strict';
-
-<<<<<<< HEAD
-module.exports = require('./client');
-=======
-Object.defineProperty(exports, '__esModule', { value: true });
-
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var _Object$freeze = _interopDefault(require('babel-runtime/core-js/object/freeze'));
-var _classCallCheck = _interopDefault(require('babel-runtime/helpers/classCallCheck'));
-var _createClass = _interopDefault(require('babel-runtime/helpers/createClass'));
-var _Promise = _interopDefault(require('babel-runtime/core-js/promise'));
-var BinaryClient = _interopDefault(require('binaryjs-client'));
-var EventEmitter = _interopDefault(require('events'));
+import _Object$freeze from 'babel-runtime/core-js/object/freeze';
+import _classCallCheck from 'babel-runtime/helpers/classCallCheck';
+import _createClass from 'babel-runtime/helpers/createClass';
+import _Promise from 'babel-runtime/core-js/promise';
+import BinaryClient from 'binaryjs-client';
+import EventEmitter from 'events';
 
 /* globals AudioContext  */
 /* globals ttsAudio  */
@@ -566,6 +557,5 @@ var SpeechToText = function SpeechToText(serverUrl, canvas, emitter) {
 
 //(function(ttsAudio) { ttsAudio.Client = Client; })(ttsAudio);
 
-exports.Client = Client;
-//# sourceMappingURL=index.js.map
->>>>>>> ace36edef5123cd26619fdd1f1dc8823821cbedf
+export { Client };
+//# sourceMappingURL=index.es.js.map
