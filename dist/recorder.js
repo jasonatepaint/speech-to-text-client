@@ -9,11 +9,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /* globals AudioContext  */
-/* globals ttsAudio  */
-
-var blob = new Blob(require('./worker.js'));
-var blobUrl = window.URL.createObjectURL(blob);
-var worker = new Worker(blobUrl);
 
 var getUserMedia = require('getusermedia');
 
@@ -189,5 +184,10 @@ var AudioRecorder = function () {
 
   return AudioRecorder;
 }();
+
+var workerString = '\nvar\n  SIXTEEN_kHz = 16000,\n  sampleRate;\n\nvar onmessage = function(e) {\n  switch (e.data.command) {\n    case \'init\':\n      init(e.data.config);\n      break;\n    case \'record\':\n      record(e.data.buffer);\n      break;\n  }\n};\n\nfunction init(config) {\n  sampleRate = config.sampleRate;\n}\n\nfunction record(inputBuffer) {\n  var recBuffer = [ inputBuffer[0] ];\n  var recLength = inputBuffer[0].length;\n\n  var mergedBuffers = mergeBuffers(recBuffer, recLength);\n  var downsampledBuffer = downsampleBuffer(mergedBuffers, SIXTEEN_kHz);\n  postMessage(convertFloat32ToInt16(downsampledBuffer));\n}\n\nfunction convertFloat32ToInt16(buffer) {\n  var l = buffer.length;\n  var buf = new Int16Array(l);\n  while (l--) {\n    buf[l] = Math.min(1, buffer[l]) * 0x7FFF;\n  }\n  return buf.buffer;\n}\n\nfunction downsampleBuffer(buffer) {\n  if (SIXTEEN_kHz === sampleRate) {\n    return buffer;\n  }\n  var sampleRateRatio = sampleRate / SIXTEEN_kHz;\n  var newLength = Math.round(buffer.length / sampleRateRatio);\n  var result = new Float32Array(newLength);\n  var offsetResult = 0;\n  var offsetBuffer = 0;\n  while (offsetResult < result.length) {\n    var nextOffsetBuffer = Math.round((offsetResult + 1) * sampleRateRatio);\n    var accum = 0,\n      count = 0;\n    for (var i = offsetBuffer; i < nextOffsetBuffer && i < buffer.length; i++) {\n      accum += buffer[i];\n      count++;\n    }\n    result[offsetResult] = accum / count;\n    offsetResult++;\n    offsetBuffer = nextOffsetBuffer;\n  }\n  return result;\n}\n\nfunction mergeBuffers(bufferArray, recLength) {\n  var result = new Float32Array(recLength);\n  var offset = 0;\n  for (var i = 0; i < bufferArray.length; i++) {\n    result.set(bufferArray[i], offset);\n    offset += bufferArray[i].length;\n  }\n  return result;\n}\n';
+var blob = new Blob([workerString]);
+var blobUrl = window.URL.createObjectURL(blob);
+var worker = new Worker(blobUrl);
 
 exports.default = AudioRecorder;
