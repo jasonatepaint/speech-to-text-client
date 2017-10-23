@@ -7,20 +7,6 @@ class AudioControl {
   constructor(audioRecorder) {
     this.audioRecorder = audioRecorder;
   }
-  
-  /**
-   * This callback type is called `onSilenceCallback`.
-   *
-   * @callback onSilenceCallback
-   */
-
-  /**
-   * Visualize callback: `visualizerCallback`.
-   *
-   * @callback visualizerCallback
-   * @param {Uint8Array} dataArray
-   * @param {number} bufferLength
-   */
 
   /**
    * Clears the previous buffer and starts buffering audio.
@@ -36,23 +22,6 @@ class AudioControl {
    */
   stopRecording() {
     this.recorder.stop();
-  };
-
-  /**
-   * On export complete callback: `onExportComplete`.
-   *
-   * @callback onExportComplete
-   * @param {Blob} blob The exported audio as a Blob.
-   */
-
-  /**
-   * Exports the captured audio buffer.
-   * @param {onExportComplete} callback - Called when the export is complete.
-   */
-  exportWAV(callback) {
-    this.recorder.exportWAV(function(blob) {
-      callback(blob);
-    });
   };
 
   /**
