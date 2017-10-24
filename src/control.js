@@ -1,7 +1,6 @@
 /* jshint esnext: true */
 /* globals module */
 /* globals define */
-/* globals ttsAudio  */
 
 class AudioControl {
   constructor(audioRecorder) {
@@ -10,7 +9,8 @@ class AudioControl {
 
   /**
    * Clears the previous buffer and starts buffering audio.
-   * @param {?onSilenceCallback} onSilence - Called when silence is detected.
+   * @param {?onSilence} onSilence - Called when silence is detected.
+   * @param onChunkedAudio - callback w/audio buffer to be sent to server
    */
   startRecording(onSilence, onChunkedAudio) {
     this.recorder = this.audioRecorder.createRecorder();
@@ -24,38 +24,6 @@ class AudioControl {
     this.recorder.stop();
   };
 
-  /**
-   * On playback complete callback: `onPlaybackComplete`.
-   *
-   * @callback onPlaybackComplete
-   */
-
-  /**
-   * Plays the audio buffer with an HTML5 audio tag.
-   * @param {Uint8Array} buffer - The audio buffer to play.
-   * @param {?onPlaybackComplete} callback - Called when audio playback is complete.
-   */
-  play(buffer, callback) {
-    var myBlob = new Blob([buffer], { type: 'audio/mpeg' });
-    var audio = document.createElement('audio');
-    var objectUrl = window.URL.createObjectURL(myBlob);
-    audio.src = objectUrl;
-    audio.addEventListener('ended', function() {
-      audio.currentTime = 0;
-      if (typeof callback === 'function') {
-        callback();
-      }
-    });
-    audio.play();
-    this.recorder.clear();
-  };
-
-  /**
-   * On audio supported callback: `onAudioSupported`.
-   *
-   * @callback onAudioSupported
-   * @param {boolean}
-   */
 
   /**
    * Checks that getUserMedia is supported and the user has given us access to the mic.

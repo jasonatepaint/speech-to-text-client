@@ -3,6 +3,7 @@
 const getUserMedia = require('getusermedia');
 
 class Recorder {
+
   constructor(source, visualizer) {
     this.recording = false;
     this.visualizer = visualizer;

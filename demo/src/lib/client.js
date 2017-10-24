@@ -1,3 +1,6 @@
+/***
+ * Based off of concepts from:  https://aws.amazon.com/blogs/ai/capturing-voice-input-in-a-browser/
+ */
 import AudioRecorder from './recorder';
 import Renderer from './renderer';
 import AudioControl from './control';
@@ -19,8 +22,15 @@ class Client {
   }
 }
 
+/***
+ * Workflow service that handles the capture/listen/transcribe process
+ * @param serverUrl -- URL to the Websocket service that's processing the speech-to-text
+ * @param canvas - An HTML canvas element to use to draw the audio wave
+ * @param emitter - Client emitter to allow event-based notifications
+ */
 const SpeechToText = (serverUrl, canvas, emitter) => {
 
+  const RESPONSE_TIMEOUT = 5000;
   let renderer = new Renderer(canvas);
   const audioRecorder = new AudioRecorder(renderer);
   const audioControl = new AudioControl(audioRecorder);
@@ -43,14 +53,13 @@ const SpeechToText = (serverUrl, canvas, emitter) => {
     });
 
     this.onSilence = function() {
-      console.log("onSilence");
       if (timer) return;
 
       //Timeout in case we don't get a quick response from the server
       timer = setTimeout(() => {
         console.log("timed out");
         currentState.state.setResponse(null);
-      }, 5000);
+      }, RESPONSE_TIMEOUT);
     };
 
     this.onChunkedAudio = function(buffer) {
@@ -61,7 +70,7 @@ const SpeechToText = (serverUrl, canvas, emitter) => {
 
     this.transition = function(conversation) {
       currentState = conversation;
-      var state = currentState.state;
+      let state = currentState.state;
 
       if (state.status === state.statusTypes.TRANSCRIBED) {
         currentState.advanceConversation();
@@ -127,10 +136,6 @@ const SpeechToText = (serverUrl, canvas, emitter) => {
     state.status = state.statusTypes.LISTENING;
     emitter.emit("state", state.statusTypes.LISTENING);
     this.advanceConversation = function() {
-      // audioControl.exportWAV(function(blob) {
-      //   state.audioInput = blob;
-      //   state.transition(new Sending(state));
-      // });
       state.transition(new Transcribed(state));
     }
   }
@@ -142,7 +147,6 @@ const SpeechToText = (serverUrl, canvas, emitter) => {
     emitter.emit("result", state.result);
     this.advanceConversation = function() {
       client.close();
-
       state.transition(new Initial(state));
     }
   }
@@ -162,4 +166,3 @@ const SpeechToText = (serverUrl, canvas, emitter) => {
 };
 
 export default Client;
-//(function(ttsAudio) { ttsAudio.Client = Client; })(ttsAudio);
