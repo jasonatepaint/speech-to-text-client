@@ -152,6 +152,9 @@ class AudioRecorder {
   };
 }
 
+/***
+ * Worker string -- See Readme for WHY
+ */
 
 var workerString = `
 var
